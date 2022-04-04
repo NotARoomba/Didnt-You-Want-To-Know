@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using RestSharp;
 using Newtonsoft.Json;
+using IWshRuntimeLibrary;
 
 namespace Startup_Facts
 {
@@ -13,8 +14,31 @@ namespace Startup_Facts
         public StartupForm()
         {
             InitializeComponent();
+            if (Startup_Facts.Settings.Default.FirstRun == true)
+            {
+                Settings.Default.FirstRun = false;
+                Settings.Default.Save();
+                WshShell wshShell = new WshShell();
+                IWshRuntimeLibrary.IWshShortcut shortcut;
+                string startUpFolderPath =
+                  Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+
+                // Create the shortcut
+                shortcut =
+                  (IWshRuntimeLibrary.IWshShortcut)wshShell.CreateShortcut(
+                    startUpFolderPath + "\\" +
+                    Application.ProductName + ".lnk");
+
+                shortcut.TargetPath = Application.ExecutablePath;
+                shortcut.WorkingDirectory = Application.StartupPath;
+                shortcut.Description = "Display facts on startup";
+                // shortcut.IconLocation = Application.StartupPath + @"\App.ico";
+                shortcut.Save();
+                Settings.Default.FirstRun = false;
+            }
             Main();
         }
+        // make a function that runs on the first run of the program
         public void Main()
         {
             bool IsEnglish = false;
